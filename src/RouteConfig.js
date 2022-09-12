@@ -7,10 +7,17 @@ const SearchParams = lazy(() => import("./components/SearchParams"));
 const Nopagefound = lazy(() => import("./pages/Nopagefound"));
 
 function RoueConfig() {
+  const [sampleData, setSampleData] = useState(5);
+
   return (
     <BrowserRouter>
       <Suspense fallback={<div>loading....</div>}>
-        <WebContext.Provider>
+        <WebContext.Provider
+          value={{
+            sampleData,
+            setSampleData,
+          }}
+        >
           <Routes>
             <Route
               path="/"
