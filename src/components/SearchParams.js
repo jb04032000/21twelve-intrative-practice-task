@@ -1,10 +1,14 @@
+import { useContext } from "react";
 import { useEffect, useRef, useState } from "react";
+import WebContext from "../context/web-context";
 import useBreedList from "../custon hooks/useBreedList";
 import Pet from "./Pet";
 
 const ANIMALS = ["bird", "cat", "dog", "rabbit", "reptile"];
 
 const SearchParams = () => {
+  const { sampleData } = useContext(WebContext);
+  const [loader, setLoader] = useState(false);
   const [location, updateLocation] = useState("");
   const [animal, updateAnimal] = useState("");
   const [breed, updateBreed] = useState("");
@@ -17,12 +21,14 @@ const SearchParams = () => {
     locationInputRef.current.focus();
   }, []);
 
-  async function requestPets() {
+  async function requestPets(e) {
+    setLoader(true);
     const res = await fetch(
       `http://pets-v2.dev-apis.com/pets?animal=${animal}&location=${location}&breed=${breed}`
     );
     const json = await res.json();
     setPets(json.pets);
+    setLoader(false);
   }
 
   const handleUpdateBreed = (e) => {
@@ -32,6 +38,24 @@ const SearchParams = () => {
     updateAnimal(e.target.value);
     updateBreed("");
   };
+
+  const renderData = () => {
+    if (loader) {
+      return <div> loading </div>;
+    } else if (!pets.length) {
+      return <div> No Data Found </div>;
+    } else {
+      return pets.map((pet) => (
+        <Pet
+          name={pet.name}
+          animal={pet.animal}
+          breed={pet.breed}
+          key={pet.id}
+        />
+      ));
+    }
+  };
+
   return (
     <div className="search-params">
       <form
@@ -56,12 +80,8 @@ const SearchParams = () => {
           <select
             id="animal"
             value={animal}
-            onChange={(e) => {
-              handleAnimalSelect(e);
-            }}
-            onBlur={(e) => {
-              handleAnimalSelect(e);
-            }}
+            onChange={handleAnimalSelect}
+            onBlur={handleAnimalSelect}
           >
             <option />
             {ANIMALS.map((animal) => (
@@ -78,8 +98,8 @@ const SearchParams = () => {
             disabled={!breeds.length}
             id="breed"
             value={breed}
-            onChange={(e) => handleUpdateBreed(e)}
-            onBlur={(e) => handleUpdateBreed(e)}
+            onChange={handleUpdateBreed}
+            onBlur={handleUpdateBreed}
           >
             <option />
             {breeds.map((breed) => (
@@ -92,18 +112,7 @@ const SearchParams = () => {
         <br />
         <button>Submit</button>
       </form>
-      {!pets.length ? (
-        <div> No Data Found </div>
-      ) : (
-        pets.map((pet) => (
-          <Pet
-            name={pet.name}
-            animal={pet.animal}
-            breed={pet.breed}
-            key={pet.id}
-          />
-        ))
-      )}
+      {renderData()}
     </div>
   );
 };
